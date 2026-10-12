@@ -79,3 +79,15 @@ def classify_and_filter_logs(lines):
             unknown_count += 1
 
     return info_list, warn_list, error_list, crit_list, unknown_count
+# Module 4 - Beyza
+# Saving cleaned and classified logs to files
+
+def save_logs_to_file(output_dir, file_name, logs):
+    file_path = os.path.join(output_dir, file_name)
+    with open(file_path, "w", encoding="utf-8") as f:
+        count = 1
+        for line in logs:
+            f.write(f"{count}. {line.strip()}\n")
+            count += 1
+
+    print(f"Saved: {file_name} ({len(logs)} logs)")
