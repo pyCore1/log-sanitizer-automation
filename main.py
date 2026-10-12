@@ -91,3 +91,49 @@ def save_logs_to_file(output_dir, file_name, logs):
             count += 1
 
     print(f"Saved: {file_name} ({len(logs)} logs)")
+    
+# Module 5 - Emre
+# Main CLI function
+
+def main():
+    parser = argparse.ArgumentParser(description="Clean and classify Apache access logs")
+    parser.add_argument("--source", required=True, help="Path to Apache access log")
+    parser.add_argument("--output", default="Output", help="Output folder")
+    parser.add_argument("--verbose", action="store_true", help="Show summary")
+    args = parser.parse_args()
+
+    raw_lines = read_log_file(args.source)
+    if raw_lines is None:
+        return
+
+    # clean lines
+    cleaned = []
+    for line in raw_lines:
+        if line.strip():
+            cleaned.append(mask_log_line(line))
+
+    info_logs, warn_logs, error_logs, crit_logs, unknown = classify_and_filter_logs(cleaned)
+
+    try:
+        os.makedirs(args.output, exist_ok=True)
+        # save files
+        save_logs_to_file(args.output, "01_Info.txt", info_logs)
+        save_logs_to_file(args.output, "02_Warning.txt", warn_logs)
+        save_logs_to_file(args.output, "03_ERROR.txt", error_logs)
+        save_logs_to_file(args.output, "04_Critical.txt", crit_logs)
+        save_logs_to_file(args.output, "05_ALL_LOGS_WITH_MASKED_IP.txt", cleaned)
+    except OSError as err:
+        print(f"Cannot save output: {err}")
+        return
+
+    # print details if verbose
+    if args.verbose:
+        print(f"Processed: {len(cleaned)} lines")
+        print(f"INFO (HTTP 2xx/3xx): {len(info_logs)}")
+        print(f"WARNING (HTTP 4xx): {len(warn_logs)}")
+        print(f"ERROR (HTTP 5xx): {len(error_logs)}")
+        print(f"Other/unrecognized: {unknown}")
+        print("CRITICAL is not inferred from Apache HTTP status codes.")
+
+if __name__ == "__main__":
+    main()
