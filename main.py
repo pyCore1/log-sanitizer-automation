@@ -42,3 +42,40 @@ def mask_log_line(line):
             words[0] = "[MASKED_IP]"
 
     return " ".join(words) + "\n"
+
+# Module 3 - Mustafa
+# Extracting HTTP status codes and classifying logs
+
+def classify_and_filter_logs(lines):
+    info_list = []
+    warn_list = []
+    error_list = []
+    crit_list = []
+    unknown_count = 0
+
+    for line in lines:
+        parts = line.split('"')
+        if len(parts) < 3:
+            unknown_count += 1
+            continue
+
+        details = parts[2].split()
+        if not details:
+            unknown_count += 1
+            continue
+
+        status = details[0]
+        # check status code
+        if not status.isdigit() or len(status) != 3:
+            unknown_count += 1
+        # group by http code
+        elif status.startswith("2") or status.startswith("3"):
+            info_list.append(line.strip())
+        elif status.startswith("4"):
+            warn_list.append(line.strip())
+        elif status.startswith("5"):
+            error_list.append(line.strip())
+        else:
+            unknown_count += 1
+
+    return info_list, warn_list, error_list, crit_list, unknown_count
